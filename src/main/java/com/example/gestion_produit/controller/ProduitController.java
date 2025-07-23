@@ -16,16 +16,17 @@ import java.util.List;
 public class ProduitController {
     private final ProduitService produitService;
 
-    @GetMapping("/hello")
-    public String sayHello()
-    {
-        return "Hello";
-    }
-
     @GetMapping("/all")
     public List<Produit> getAllProduits(){
         return produitService.getAllProduits();
     }
+
+    @GetMapping("/{id}")
+    public Produit getProduitById(@PathVariable long id) {
+        return produitService.getProduitById(id);
+    }
+
+
     @PostMapping
     public Produit createProduit(@RequestBody Produit produit){
         return produitService.createProduit(produit);
@@ -37,7 +38,7 @@ public class ProduitController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public String deleteProduit(@PathVariable long id) {
-       return produitService.deleteProduit(id);
+    public String deleteProduitById(@PathVariable long id) {
+       return produitService.deleteProduitById(id);
     }
 }
