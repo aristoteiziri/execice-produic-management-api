@@ -16,3 +16,19 @@ services:
     restart: always
     ports:
       - 8080:8080
+
+  produit-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: produit-service
+    restart: always
+    ports:
+      - '8081:8082'
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/produits_db
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      - postgres
