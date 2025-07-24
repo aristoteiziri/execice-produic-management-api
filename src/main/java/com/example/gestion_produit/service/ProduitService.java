@@ -1,5 +1,6 @@
 package com.example.gestion_produit.service;
 
+import com.example.gestion_produit.exception.NotFoundException;
 import com.example.gestion_produit.model.Produit;
 import com.example.gestion_produit.repository.ProduitRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,7 @@ public class ProduitService {
        // if (produitOptional.isPresent()) return produitOptional.get();
 
         if(produitOptional.isEmpty()) {
-            throw new RuntimeException("Produit inexistant" );
+            throw new NotFoundException("Produit inexistant" );
         }
         return produitOptional.get();
 
@@ -47,7 +48,7 @@ public class ProduitService {
             produitRepository.delete(produitOptional.get());
             return "Produit supprimé avec succès! ";
         }else{
-            return "Produit inexistant";
+            throw new NotFoundException("Produit not found" );
         }
 
     }
@@ -64,7 +65,7 @@ public class ProduitService {
             // Add any other fields you want to update
             return produitRepository.save(existingProduit);
         } else {
-            throw new RuntimeException("Produit not found with id: " + id);
+            throw new NotFoundException("Produit not found");
         }
 
 
