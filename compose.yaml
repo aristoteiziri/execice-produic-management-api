@@ -1,34 +1,62 @@
 services:
-  postgres:
-    image: postgres
-    container_name: postgres
-    restart: always
-    ports:
-      - '5432:5432'
+  postgres-db:
+    image: postgres:16-alpine
+    container_name: postgres-db-stock-management # Ce nom a également été rendu unique pour suivre les bonnes pratiques
     environment:
+      POSTGRES_DB: stockdb
       POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: produits_db
-
-  adminer:
-    image: adminer
-    container_name: adminer
-    restart: always
+      POSTGRES_PASSWORD: admin123
     ports:
-      - 8080:8080
+      - "5432:5432"
+    networks:
+      - network1
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck: # Vérifie que la BDD est prête avant de démarrer l'application
+      test: ["CMD-SHELL", "pg_isready -U admin -d stockdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  produit-service:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: produit-service
-    restart: always
-    ports:
-      - '8081:8082'
+  pgadmin:
+    image: dpage/pgadmin4
+    # Nous donnons à ce conteneur un nom unique pour éviter les conflits avec d'autres projets
+    container_name: pgadmin-stock-management
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/produits_db
-      SPRING_DATASOURCE_USERNAME: admin
-      SPRING_DATASOURCE_PASSWORD: admin
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    networks:
+      - network1
     depends_on:
-      - postgres
+      postgres-db:
+        condition: service_healthy
+
+  stock-management:
+    build: .
+    image: stock-management:v1.0.0
+    networks:
+      - network1
+    environment:
+      SPRING_PROFILES_ACTIVE: development
+      SPRING_CLOUD_CONFIG_PASSWORD: root@321
+
+      # Le nom d'hôte est le nom du conteneur de la base de données
+      DB_HOST: postgres-db-stock-management
+      DB_USER: admin
+      DB_PASSWORD: admin123
+    deploy:
+      replicas: 2
+    depends_on:
+      postgres-db:
+        condition: service_healthy # Attend que le healthcheck de la BDD soit positif
+
+networks:
+  network1:
+    name: blackseatechnology-network
+    external: true
+
+volumes:
+  postgres-data:
+
